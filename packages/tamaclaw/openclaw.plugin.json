@@ -1,0 +1,29 @@
+{
+  "id": "tamaclaw",
+  "name": "Tamaclaw",
+  "version": "0.1.0",
+  "description": "Companion display: the agent's animated face. Speak out loud, show notifications, dashboard charts and moods on the kiosk screen. Installing this plugin also runs the bridge + display server.",
+  "skills": ["./skills"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "port": {
+        "type": "number",
+        "description": "Port for the embedded bridge/display server (default 4321)."
+      },
+      "startBridge": {
+        "type": "boolean",
+        "description": "Run the bridge inside the gateway (default true). Set false if you run it standalone."
+      },
+      "bridgeUrl": {
+        "type": "string",
+        "description": "Base URL of the Tamaclaw bridge (default http://127.0.0.1:<port>)."
+      },
+      "timeoutMs": {
+        "type": "number",
+        "description": "HTTP timeout for bridge calls in ms (default 3000)."
+      }
+    }
+  }
+}

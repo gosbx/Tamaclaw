@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- LaunchAgent: keeps the Tamaclaw window alive on the kiosk Mac.
+     1. Adjust the binary path below (and env vars) to your install.
+     2. cp scripts/com.tamaclaw.shell.plist ~/Library/LaunchAgents/
+     3. launchctl load ~/Library/LaunchAgents/com.tamaclaw.shell.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>   <string>com.tamaclaw.shell</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/CHANGE_ME/Tamaclaw/dist/Tamaclaw.app/Contents/MacOS/Tamaclaw</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- monitor anexo: índice de pantalla, o quita la clave para auto (secundaria si existe) -->
+    <key>TAMACLAW_SCREEN</key> <string>1</string>
+  </dict>
+  <key>RunAtLoad</key> <true/>
+  <key>KeepAlive</key> <true/>
+  <key>ProcessType</key> <string>Interactive</string>
+</dict>
+</plist>
