@@ -27,7 +27,7 @@ import { createEngine } from "./tts.ts";
 import { SayQueue } from "./say-queue.ts";
 import { wakeDisplay } from "./wake.ts";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.7";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // When running from compiled dist/bridge/, display is at ../../display;
