@@ -1,9 +1,22 @@
 {
   "id": "tamaclaw",
   "name": "Tamaclaw",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Companion display: the agent's animated face. Speak out loud, show notifications, dashboard charts and moods on the kiosk screen. Installing this plugin also runs the bridge + display server.",
   "skills": ["./skills"],
+  "contracts": {
+    "tools": [
+      "tamaclaw_say",
+      "tamaclaw_notify",
+      "tamaclaw_chart",
+      "tamaclaw_show",
+      "tamaclaw_mood",
+      "tamaclaw_skin"
+    ],
+    "services": [
+      "tamaclaw-bridge"
+    ]
+  },
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
