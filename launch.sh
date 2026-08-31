@@ -250,15 +250,31 @@ if $STANDALONE; then
     for candidate in \
       "${SCRIPT_DIR:+$SCRIPT_DIR/packages/tamaclaw/bridge/main.ts}" \
       "${SCRIPT_DIR:+$SCRIPT_DIR/bridge/main.ts}" \
-      "${SCRIPT_DIR:+$SCRIPT_DIR/dist/bridge/main.js}" \
-      "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/dist/bridge/main.js" \
-      "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/bridge/main.ts"; do
+      "${SCRIPT_DIR:+$SCRIPT_DIR/dist/bridge/main.js}"; do
       [[ -z "$candidate" ]] && continue
       if [[ -f "$candidate" ]]; then
         BRIDGE="$candidate"
         break
       fi
     done
+
+    # Search OpenClaw plugin install paths (may have generation suffixes)
+    if [[ -z "$BRIDGE" ]]; then
+      for candidate in "$HOME"/.openclaw/npm/projects/tamaclaw*/node_modules/tamaclaw/dist/bridge/main.js; do
+        if [[ -f "$candidate" ]]; then
+          BRIDGE="$candidate"
+          break
+        fi
+      done
+    fi
+    if [[ -z "$BRIDGE" ]]; then
+      for candidate in "$HOME"/.openclaw/npm/projects/tamaclaw*/node_modules/tamaclaw/bridge/main.ts; do
+        if [[ -f "$candidate" ]]; then
+          BRIDGE="$candidate"
+          break
+        fi
+      done
+    fi
 
     # Last resort: try to find it via npm global or npx
     if [[ -z "$BRIDGE" ]]; then
