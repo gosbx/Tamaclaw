@@ -209,7 +209,8 @@ if ! $STANDALONE && ! $SKIP_INSTALL; then
 
   step "Waiting for Tamaclaw bridge on port $PORT"
 
-  if wait_for_health "$URL" 15; then
+  echo "   Waiting up to 20 seconds..."
+  if wait_for_health "$URL" 20; then
     ok "Bridge is healthy at $URL"
   else
     warn "Bridge didn't start via Gateway — starting it directly"
@@ -260,10 +261,11 @@ if $STANDALONE; then
 
     # Search OpenClaw plugin install paths (may have generation suffixes)
     if [[ -z "$BRIDGE" ]]; then
-      BRIDGE=$(find "$HOME/.openclaw/npm/projects" -path "*/tamaclaw/dist/bridge/main.js" -type f 2>/dev/null | head -1) || true
+      echo "   Searching for bridge in ~/.openclaw..."
+      BRIDGE=$(find "$HOME/.openclaw" -name "main.js" -path "*/tamaclaw/dist/bridge/*" -type f 2>/dev/null | head -1) || true
     fi
     if [[ -z "$BRIDGE" ]]; then
-      BRIDGE=$(find "$HOME/.openclaw/npm/projects" -path "*/tamaclaw/bridge/main.ts" -type f 2>/dev/null | head -1) || true
+      BRIDGE=$(find "$HOME/.openclaw" -name "main.ts" -path "*/tamaclaw/bridge/*" -type f 2>/dev/null | head -1) || true
     fi
     # Also check the older flat path without generations
     if [[ -z "$BRIDGE" ]] && [[ -f "$HOME/.openclaw/extensions/tamaclaw/dist/bridge/main.js" ]]; then
@@ -285,6 +287,13 @@ if $STANDALONE; then
     if [[ -z "$BRIDGE" ]]; then
       echo ""
       echo "   Cannot find the bridge entry point."
+      echo "   Searched in:"
+      echo "     - $HOME/.openclaw/ (find)"
+      [[ -n "$SCRIPT_DIR" ]] && echo "     - $SCRIPT_DIR/packages/tamaclaw/"
+      echo ""
+      echo "   Debug: contents of ~/.openclaw/npm/projects/:"
+      ls -d "$HOME"/.openclaw/npm/projects/*tamaclaw* 2>/dev/null || echo "     (none)"
+      echo ""
       echo "   Install it first:"
       echo "     npm install -g tamaclaw"
       echo "   Or with OpenClaw:"
