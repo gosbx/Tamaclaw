@@ -133,6 +133,26 @@ openclaw plugins enable tamaclaw
 openclaw restart
 ```
 
+### Troubleshooting: bridge doesn't start after install/update
+
+The Gateway sometimes doesn't auto-start the bridge after a plugin
+install or update. If `http://localhost:4321` doesn't respond, run this
+one-liner to start it manually (it stays in the background):
+
+```bash
+kill $(lsof -ti :4321) 2>/dev/null; BRIDGE=$(find ~/.openclaw -name "main.js" -path "*/tamaclaw/dist/bridge/*" -type f | head -1) && nohup node "$BRIDGE" > /tmp/tamaclaw-bridge.log 2>&1 & open http://localhost:4321
+```
+
+What it does: kills any old bridge on port 4321, finds the installed
+bridge binary, starts it in the background (log at `/tmp/tamaclaw-bridge.log`),
+and opens the display.
+
+To stop it:
+
+```bash
+kill $(lsof -ti :4321) 2>/dev/null
+```
+
 ---
 
 ## Standalone mode (no OpenClaw)
@@ -346,6 +366,22 @@ curl -X POST localhost:4321/skin -H 'content-type: application/json' -d '{"value
 curl -X POST localhost:4321/skin -H 'content-type: application/json' -d '{"value": "nebula"}'
 ```
 
+### Adjust display zoom (for small/large screens)
+
+```bash
+# Make everything 40% bigger (great for small 5" screens)
+curl -X POST localhost:4321/scale -H 'content-type: application/json' -d '{"value": 140}'
+
+# Back to default
+curl -X POST localhost:4321/scale -H 'content-type: application/json' -d '{"value": 100}'
+
+# Make it smaller (for larger screens)
+curl -X POST localhost:4321/scale -H 'content-type: application/json' -d '{"value": 80}'
+```
+
+The scale persists across reloads. Range: 50–200. Or just tell the agent:
+*"make the display bigger"* and it will adjust incrementally.
+
 ### Run the full demo
 
 ```bash
@@ -386,7 +422,8 @@ All endpoints are on port 4321 (configurable via `TAMACLAW_PORT`).
 | `POST /show` | `{icon?, title?, source?, body?, html?, ttl?, say?, clear?}` | Rich content card (text and/or HTML) |
 | `POST /mood` | `{value}` | Set mood: `idle` `thinking` `talking` `happy` `alert` `sleeping` |
 | `POST /skin` | `{value}` | Switch pet: `nebula` `pixa` `mochi` `holo` `claw` |
-| `GET /health` | — | Bridge status (version, TTS engine, connected displays, queue) |
+| `POST /scale` | `{value}` | Adjust display zoom: 50–200 (100 = default). Persists across reloads |
+| `GET /health` | — | Bridge status (version, TTS engine, connected displays, queue, scale) |
 
 **Data formats for `/dashboard`:**
 
@@ -405,6 +442,7 @@ When installed as a plugin, the agent gets 6 tools:
 | `tamaclaw_show(icon?, title?, source?, body?, html?, ttl?, say?, clear?)` | `POST /show` |
 | `tamaclaw_mood(mood)` | `POST /mood` |
 | `tamaclaw_skin(skin)` | `POST /skin` |
+| `tamaclaw_scale(scale)` | `POST /scale` |
 
 A bundled skill (`skills/tamaclaw/SKILL.md`) teaches the agent when to use
 them: notify on task completions, send charts instead of text tables, use
