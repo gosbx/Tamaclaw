@@ -2,21 +2,30 @@
 # ============================================================================
 # Tamaclaw Setup & Launch
 # ============================================================================
-# One command to go from zero to a running Tamaclaw display.
+# One command to install, update, and launch Tamaclaw.
+#
+# Run directly from GitHub (no clone needed):
+#   bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh) --kiosk
+#
+# Or from a local clone:
+#   ./launch.sh
+#   ./launch.sh --kiosk
 #
 # What it does (step by step):
 #   1. Checks prerequisites (Node >= 23.6, openclaw CLI)
 #   2. Installs the tamaclaw plugin (if not already installed)
-#   3. Enables the plugin (if not already enabled)
-#   4. Restarts the OpenClaw Gateway (so the bridge service registers)
-#   5. Waits for the bridge to be healthy
-#   6. Opens the display (browser or kiosk mode)
-#   7. Returns control to your terminal
+#   3. Updates it (if a newer version is available on npm)
+#   4. Enables the plugin (if not already enabled)
+#   5. Restarts the OpenClaw Gateway (so the bridge service registers)
+#   6. Waits for the bridge to be healthy
+#   7. Opens the display (browser or kiosk mode)
+#   8. Returns control to your terminal
 #
 # Usage:
-#   ./launch.sh                  # install + open in default browser
-#   ./launch.sh --kiosk          # install + open in Chrome kiosk (fullscreen, no UI)
-#   ./launch.sh --standalone     # skip OpenClaw, just run the bridge + open display
+#   ./launch.sh                  # install/update + open in default browser
+#   ./launch.sh --kiosk          # install/update + open in Chrome kiosk
+#   ./launch.sh --standalone     # skip OpenClaw, just run the bridge + open
 #   ./launch.sh --port 5000      # use a custom port
 #   ./launch.sh --stop           # stop a standalone bridge started by this script
 #
@@ -50,9 +59,12 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "  --kiosk         Open display in Chrome kiosk mode (fullscreen, no UI)"
       echo "  --standalone    Run the bridge directly, skip OpenClaw plugin install"
-      echo "  --skip-install  Skip plugin install/enable, just restart and open"
+      echo "  --skip-install  Skip plugin install/update/enable, just restart and open"
       echo "  --port N        Bridge port (default: 4321)"
       echo "  --stop          Stop a standalone bridge started by this script"
+      echo ""
+      echo "Run directly from GitHub:"
+      echo "  bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh)"
       exit 0
       ;;
     *) echo "Unknown option: $1. Use --help for usage."; exit 1 ;;
@@ -100,6 +112,12 @@ if $STOP; then
   exit 0
 fi
 
+# ── Banner ──────────────────────────────────────────────────────────────────
+
+echo ""
+echo "  🥚🦞 Tamaclaw Setup & Launch"
+echo ""
+
 # ── Step 1: Prerequisites ──────────────────────────────────────────────────
 
 step "Checking prerequisites"
@@ -113,6 +131,10 @@ if [[ "$NODE_MAJOR" -lt 23 ]]; then
   fail "Node.js $NODE_MAJOR found, but >= 23.6 is required. Update: https://nodejs.org"
 fi
 ok "Node.js $(node -v)"
+
+if ! command -v curl &>/dev/null; then
+  fail "curl is required but not found."
+fi
 
 if ! $STANDALONE; then
   if ! command -v openclaw &>/dev/null; then
@@ -130,6 +152,20 @@ if ! $STANDALONE && ! $SKIP_INSTALL; then
 
   if openclaw plugins list 2>/dev/null | grep -q "tamaclaw"; then
     ok "tamaclaw is already installed"
+
+    # ── Step 2b: Update plugin ────────────────────────────────────────────
+
+    step "Checking for updates"
+
+    UPDATE_OUTPUT=$(openclaw plugins update tamaclaw 2>&1) || true
+    if echo "$UPDATE_OUTPUT" | grep -q "is up to date"; then
+      ok "tamaclaw is up to date"
+    elif echo "$UPDATE_OUTPUT" | grep -q "Updated"; then
+      ok "$UPDATE_OUTPUT"
+    else
+      # update command might not exist in older versions, skip gracefully
+      ok "Update check done"
+    fi
   else
     echo "   Installing from npm..."
     if openclaw plugins install tamaclaw 2>&1; then
@@ -204,26 +240,45 @@ if $STANDALONE; then
     ok "Bridge is already running at $URL"
   else
     # Find the bridge entry point
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    BRIDGE=""
+    SCRIPT_DIR=""
+    # If run via bash <(curl ...), $0 won't be a real path
+    if [[ -f "$0" ]]; then
+      SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    fi
 
+    BRIDGE=""
     for candidate in \
-      "$SCRIPT_DIR/packages/tamaclaw/bridge/main.ts" \
-      "$SCRIPT_DIR/bridge/main.ts" \
-      "$SCRIPT_DIR/dist/bridge/main.js" \
+      "${SCRIPT_DIR:+$SCRIPT_DIR/packages/tamaclaw/bridge/main.ts}" \
+      "${SCRIPT_DIR:+$SCRIPT_DIR/bridge/main.ts}" \
+      "${SCRIPT_DIR:+$SCRIPT_DIR/dist/bridge/main.js}" \
       "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/dist/bridge/main.js" \
       "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/bridge/main.ts"; do
+      [[ -z "$candidate" ]] && continue
       if [[ -f "$candidate" ]]; then
         BRIDGE="$candidate"
         break
       fi
     done
 
+    # Last resort: try to find it via npm global or npx
     if [[ -z "$BRIDGE" ]]; then
-      fail "Cannot find the bridge. Install tamaclaw first: openclaw plugins install tamaclaw"
+      # Try npx resolution
+      NPX_PATH=$(npm root -g 2>/dev/null)/tamaclaw/dist/bridge/main.js
+      if [[ -f "$NPX_PATH" ]]; then
+        BRIDGE="$NPX_PATH"
+      fi
     fi
 
-    # Start in background, detached from this shell
+    if [[ -z "$BRIDGE" ]]; then
+      echo ""
+      echo "   Cannot find the bridge entry point."
+      echo "   Install it first:"
+      echo "     npm install -g tamaclaw"
+      echo "   Or with OpenClaw:"
+      echo "     openclaw plugins install tamaclaw"
+      fail "Bridge not found."
+    fi
+
     echo "   Starting: node $BRIDGE"
     nohup node "$BRIDGE" > "$LOGFILE" 2>&1 &
     BRIDGE_PID=$!
@@ -236,8 +291,9 @@ if $STANDALONE; then
     else
       kill "$BRIDGE_PID" 2>/dev/null || true
       rm -f "$PIDFILE"
+      echo ""
       echo "   Bridge log:"
-      cat "$LOGFILE" 2>/dev/null | tail -20
+      tail -20 "$LOGFILE" 2>/dev/null || true
       fail "Bridge failed to start. Check $LOGFILE for details."
     fi
   fi
@@ -275,7 +331,8 @@ fi
 
 echo ""
 echo "============================================"
-echo "  Tamaclaw is running!"
+echo "  🥚🦞 Tamaclaw is running!"
+echo ""
 echo "  Display : $URL"
 echo "  Health  : $URL/health"
 if $BRIDGE_STARTED; then
@@ -292,3 +349,6 @@ echo "To stop the standalone bridge:"
 echo "  ./launch.sh --stop"
 echo ""
 fi
+echo "To run this again later:"
+echo "  bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh)"
+echo ""

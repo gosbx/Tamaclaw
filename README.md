@@ -33,31 +33,41 @@ One npm package = everything: OpenClaw plugin + HTTP bridge + kiosk display.
 
 ## Quick start (one command)
 
-Clone the repo and run the launcher — it installs the plugin, enables it,
-restarts the Gateway, starts the bridge, and opens the display:
+No need to clone anything. Run this directly from your terminal:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh)
+```
+
+Or in Chrome kiosk mode (fullscreen, no browser UI):
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/gosbx/Tamaclaw/main/launch.sh) --kiosk
+```
+
+That's it. The script will:
+
+1. Check Node >= 23.6 and `openclaw` CLI
+2. Install the `tamaclaw` plugin (if not already installed)
+3. Update it (if a newer version exists on npm)
+4. Enable the plugin
+5. Restart the OpenClaw Gateway
+6. Wait for the bridge to come up on port 4321
+7. Open the display in your browser
+8. Return control to your terminal
+
+If OpenClaw is not installed, it switches to standalone mode automatically.
+
+**From a local clone** (same thing, but offline):
 
 ```bash
 git clone https://github.com/gosbx/Tamaclaw.git
 cd Tamaclaw
 npm install
-./launch.sh              # installs plugin + opens display in browser
-./launch.sh --kiosk      # same, but opens in Chrome fullscreen (no browser UI)
+./launch.sh              # or: ./launch.sh --kiosk
 ```
 
-That's it. On first launch you pick your pet, and you're done.
-
-**What the launcher does (automatically):**
-
-1. Checks Node >= 23.6 and `openclaw` CLI
-2. Runs `openclaw plugins install tamaclaw` (if not already installed)
-3. Runs `openclaw plugins enable tamaclaw` (if not already enabled)
-4. Stops and restarts the OpenClaw Gateway
-5. Waits for the bridge to be healthy on port 4321
-6. If the Gateway doesn't start the bridge, starts it directly
-7. Opens `http://localhost:4321` in your browser (or Chrome kiosk with `--kiosk`)
-
-If OpenClaw is not installed, the launcher automatically switches to
-standalone mode (bridge only, no plugin).
+On first launch you pick your pet, and you're done.
 
 ---
 
