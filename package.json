@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "node --watch packages/tamaclaw/bridge/main.ts",
     "start": "node packages/tamaclaw/bridge/main.ts",
+    "launch": "./launch.sh",
+    "launch:kiosk": "./launch.sh --kiosk",
     "demo": "./demo.sh",
     "install-plugin": "./scripts/install-plugin.sh",
     "pack": "./scripts/pack.sh"

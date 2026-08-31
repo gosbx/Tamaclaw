@@ -13,20 +13,51 @@ One npm package = everything: OpenClaw plugin + HTTP bridge + kiosk display.
 
 ## Table of contents
 
-1. [Requirements](#requirements)
-2. [Installation (OpenClaw plugin)](#installation-openclaw-plugin)
-3. [Standalone mode (no OpenClaw)](#standalone-mode-no-openclaw)
-4. [Opening the display](#opening-the-display)
-5. [Usage examples](#usage-examples)
-6. [Pets (skins)](#pets-skins)
-7. [REST API reference](#rest-api-reference)
-8. [Voice (TTS)](#voice-tts)
-9. [Screen wake](#screen-wake)
-10. [Native window (no browser)](#native-window-no-browser)
-11. [Character behavior](#character-behavior)
-12. [Configuration reference](#configuration-reference)
-13. [Project structure](#project-structure)
-14. [Development](#development)
+1. [Quick start (one command)](#quick-start-one-command)
+2. [Requirements](#requirements)
+3. [Manual installation (step by step)](#manual-installation-step-by-step)
+4. [Standalone mode (no OpenClaw)](#standalone-mode-no-openclaw)
+5. [Opening the display](#opening-the-display)
+6. [Usage examples](#usage-examples)
+7. [Pets (skins)](#pets-skins)
+8. [REST API reference](#rest-api-reference)
+9. [Voice (TTS)](#voice-tts)
+10. [Screen wake](#screen-wake)
+11. [Native window (no browser)](#native-window-no-browser)
+12. [Character behavior](#character-behavior)
+13. [Configuration reference](#configuration-reference)
+14. [Project structure](#project-structure)
+15. [Development](#development)
+
+---
+
+## Quick start (one command)
+
+Clone the repo and run the launcher — it installs the plugin, enables it,
+restarts the Gateway, starts the bridge, and opens the display:
+
+```bash
+git clone https://github.com/gosbx/Tamaclaw.git
+cd Tamaclaw
+npm install
+./launch.sh              # installs plugin + opens display in browser
+./launch.sh --kiosk      # same, but opens in Chrome fullscreen (no browser UI)
+```
+
+That's it. On first launch you pick your pet, and you're done.
+
+**What the launcher does (automatically):**
+
+1. Checks Node >= 23.6 and `openclaw` CLI
+2. Runs `openclaw plugins install tamaclaw` (if not already installed)
+3. Runs `openclaw plugins enable tamaclaw` (if not already enabled)
+4. Stops and restarts the OpenClaw Gateway
+5. Waits for the bridge to be healthy on port 4321
+6. If the Gateway doesn't start the bridge, starts it directly
+7. Opens `http://localhost:4321` in your browser (or Chrome kiosk with `--kiosk`)
+
+If OpenClaw is not installed, the launcher automatically switches to
+standalone mode (bridge only, no plugin).
 
 ---
 
@@ -37,7 +68,9 @@ One npm package = everything: OpenClaw plugin + HTTP bridge + kiosk display.
 
 ---
 
-## Installation (OpenClaw plugin)
+## Manual installation (step by step)
+
+If you prefer to do it manually instead of using `./launch.sh`:
 
 ### Step 1 — Install the plugin
 
@@ -501,9 +534,11 @@ Plugin config (in OpenClaw's plugin settings):
 
 ```
 tamaclaw/
+├── launch.sh                  # One-command setup & launch (recommended)
 ├── packages/tamaclaw/         # THE package (npm: "tamaclaw")
 │   ├── index.ts               #   OpenClaw plugin: tools + bridge service
 │   ├── openclaw.plugin.json   #   manifest (config: port, startBridge, …)
+│   ├── launch.sh              #   launcher (also works from npm install)
 │   ├── bridge/                #   REST in → WebSocket out + TTS + wake
 │   │   ├── main.ts            #   standalone entry (npm run dev)
 │   │   ├── server.ts          #   HTTP + WebSocket server
@@ -530,7 +565,10 @@ tamaclaw/
 git clone https://github.com/gosbx/Tamaclaw.git
 cd Tamaclaw
 npm install
-npm run dev          # bridge with --watch, serves display at :4321
+./launch.sh              # full setup: install plugin + start + open display
+./launch.sh --kiosk      # same but fullscreen Chrome
+./launch.sh --standalone # bridge only, no OpenClaw
+npm run dev              # bridge with --watch (dev, no display auto-open)
 ```
 
 - The display is static HTML/JS — reload the browser after editing
