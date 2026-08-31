@@ -260,20 +260,17 @@ if $STANDALONE; then
 
     # Search OpenClaw plugin install paths (may have generation suffixes)
     if [[ -z "$BRIDGE" ]]; then
-      for candidate in "$HOME"/.openclaw/npm/projects/tamaclaw*/node_modules/tamaclaw/dist/bridge/main.js; do
-        if [[ -f "$candidate" ]]; then
-          BRIDGE="$candidate"
-          break
-        fi
-      done
+      BRIDGE=$(find "$HOME/.openclaw/npm/projects" -path "*/tamaclaw/dist/bridge/main.js" -type f 2>/dev/null | head -1) || true
     fi
     if [[ -z "$BRIDGE" ]]; then
-      for candidate in "$HOME"/.openclaw/npm/projects/tamaclaw*/node_modules/tamaclaw/bridge/main.ts; do
-        if [[ -f "$candidate" ]]; then
-          BRIDGE="$candidate"
-          break
-        fi
-      done
+      BRIDGE=$(find "$HOME/.openclaw/npm/projects" -path "*/tamaclaw/bridge/main.ts" -type f 2>/dev/null | head -1) || true
+    fi
+    # Also check the older flat path without generations
+    if [[ -z "$BRIDGE" ]] && [[ -f "$HOME/.openclaw/extensions/tamaclaw/dist/bridge/main.js" ]]; then
+      BRIDGE="$HOME/.openclaw/extensions/tamaclaw/dist/bridge/main.js"
+    fi
+    if [[ -z "$BRIDGE" ]] && [[ -f "$HOME/.openclaw/extensions/tamaclaw/bridge/main.ts" ]]; then
+      BRIDGE="$HOME/.openclaw/extensions/tamaclaw/bridge/main.ts"
     fi
 
     # Last resort: try to find it via npm global or npx
