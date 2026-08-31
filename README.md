@@ -18,9 +18,11 @@ tamaclaw/
 │   │   └── main.ts            #   standalone entry (npm run dev)
 │   ├── display/               #   kiosk app (the face) — vanilla JS + chart.js vendored
 │   ├── shared/protocol.ts     #   protocol event types
+│   ├── shell/                 #   native macOS window (Swift + WKWebView)
 │   └── skills/tamaclaw/       #   SKILL.md for the agent
 ├── demo.sh                    # Show of example events via curl
 └── scripts/
+    ├── build-shell.sh         # Build dist/Tamaclaw.app (native window)
     ├── install-plugin.sh      # Dev install (copies to ~/.openclaw/extensions)
     └── pack.sh                # Self-contained tarball for release (dist/*.tgz)
 ```
@@ -116,7 +118,7 @@ selection via API to displays that reconnect).
 
 - **idle**: breathes, blinks, micro-movements.
 - **talking**: animated mouth between `say:start` and `say:end` (pseudo-amplitude;
-  the voice layer is abstracted in `packages/bridge/src/tts.ts` to plug in
+  the voice layer is abstracted in `packages/tamaclaw/bridge/tts.ts` to plug in
   ElevenLabs/OpenAI TTS with real amplitude later).
 - **happy / alert**: revert to idle after ~8s.
 - **sleeping**: after 3 min without events, or if it loses connection to the
@@ -127,7 +129,7 @@ selection via API to displays that reconnect).
 
 ## Installing in OpenClaw
 
-Once published on npm, on the Gateway machine:
+On the Gateway machine:
 
 ```bash
 openclaw plugins install tamaclaw
@@ -145,17 +147,17 @@ For local development: `npm run install-plugin` (copies + deps to
 
 The plugin registers the `tamaclaw-bridge` service (configurable with
 `startBridge: false` if you prefer running the bridge separately) and the
-tools `tamaclaw_say`, `tamaclaw_notify`, `tamaclaw_chart`, `tamaclaw_mood`,
-`tamaclaw_skin`. The skill (`skills/tamaclaw/SKILL.md`) teaches the agent to
-notify on long-running task completions, send charts instead of text tables,
-and use moods as ambient feedback. If the bridge is down, tools return a
-clear error in ~3s — they never hang the agent.
+tools `tamaclaw_say`, `tamaclaw_notify`, `tamaclaw_chart`, `tamaclaw_show`,
+`tamaclaw_mood`, `tamaclaw_skin`. The skill (`skills/tamaclaw/SKILL.md`)
+teaches the agent to notify on long-running task completions, send charts
+instead of text tables, and use moods as ambient feedback. If the bridge is
+down, tools return a clear error in ~3s — they never hang the agent.
 
 Package details in [packages/tamaclaw/README.md](packages/tamaclaw/README.md).
 
 ## Wake: the screen turns on automatically
 
-When a `say`, `notify`, or `dashboard` event arrives, the bridge runs
+When a `say`, `notify`, `dashboard`, or `show` event arrives, the bridge runs
 `caffeinate -u -t 15`: macOS treats it as user activity and **turns the
 screen on instantly**, before the voice starts. The screen can sleep freely
 between events — Tamaclaw wakes it when OpenClaw has something to say.
