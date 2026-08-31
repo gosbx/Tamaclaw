@@ -325,7 +325,35 @@ fi
 
 step "Opening display"
 
-if $KIOSK; then
+# Look for the pre-built native shell (best experience: no browser chrome)
+NATIVE_APP=""
+if [[ -n "${SCRIPT_DIR:-}" ]]; then
+  for candidate in \
+    "$SCRIPT_DIR/dist/Tamaclaw.app" \
+    "$SCRIPT_DIR/packages/tamaclaw/dist/Tamaclaw.app"; do
+    if [[ -d "$candidate" ]]; then
+      NATIVE_APP="$candidate"
+      break
+    fi
+  done
+fi
+# Also check common install locations
+if [[ -z "$NATIVE_APP" ]]; then
+  for candidate in \
+    "$HOME/Tamaclaw/dist/Tamaclaw.app" \
+    "$HOME/code/Tamaclaw/dist/Tamaclaw.app"; do
+    if [[ -d "$candidate" ]]; then
+      NATIVE_APP="$candidate"
+      break
+    fi
+  done
+fi
+
+if [[ -n "$NATIVE_APP" ]]; then
+  echo "   Found native shell: $NATIVE_APP"
+  TAMACLAW_URL="$URL" open "$NATIVE_APP"
+  ok "Opened native Tamaclaw window"
+elif $KIOSK; then
   echo "   Opening in kiosk mode (fullscreen, no browser UI)..."
   if [[ -d "/Applications/Google Chrome.app" ]]; then
     open -a "Google Chrome" --args --kiosk --app="$URL"
