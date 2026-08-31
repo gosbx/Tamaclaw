@@ -146,7 +146,7 @@ function connect() {
   ws.onopen = () => {
     retryMs = 1000;
     connDot.className = "dot online";
-    connLabel.textContent = "conectado";
+    connLabel.textContent = "connected";
     wake();
   };
 
@@ -160,7 +160,7 @@ function connect() {
 
   ws.onclose = () => {
     connDot.className = "dot offline";
-    connLabel.textContent = "sin conexión";
+    connLabel.textContent = "offline";
     speaking = false;
     bubble.classList.add("hidden");
     setMood("sleeping"); // the pet naps until the bridge is back
@@ -175,7 +175,7 @@ function connect() {
 
 const clock = document.getElementById("clock");
 function tickClock() {
-  clock.textContent = new Date().toLocaleTimeString("es", {
+  clock.textContent = new Date().toLocaleTimeString("en", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -240,7 +240,7 @@ try {
   /* ignore */
 }
 setSkin(savedSkin && SKIN_REGISTRY[savedSkin] ? savedSkin : DEFAULT_SKIN);
-if (!savedSkin) openPicker(); // first run → setup inicial
+if (!savedSkin) openPicker(); // first run → initial setup
 
 armSleepTimer();
 connect();

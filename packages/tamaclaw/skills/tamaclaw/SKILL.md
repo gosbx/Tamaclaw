@@ -14,16 +14,16 @@ is off — mention it once and carry on; never retry in a loop.
 
 | Situation | Tool | Example |
 | --- | --- | --- |
-| A long task finished (deploy, build, migration) | `tamaclaw_say` + `tamaclaw_notify` | say "Deploy terminado", notify title "Deploy OK" level info |
-| Something needs the user's eyes NOW | `tamaclaw_notify` level `critical` | "CI roto en main" |
-| Something looks off but isn't urgent | `tamaclaw_notify` level `warning` | "Disco al 85%" |
-| The user asks for metrics / numbers / "cómo van las ventas" | `tamaclaw_chart` | bar chart instead of a text table |
+| A long task finished (deploy, build, migration) | `tamaclaw_say` + `tamaclaw_notify` | say "Deploy finished", notify title "Deploy OK" level info |
+| Something needs the user's eyes NOW | `tamaclaw_notify` level `critical` | "CI broken on main" |
+| Something looks off but isn't urgent | `tamaclaw_notify` level `warning` | "Disk at 85%" |
+| The user asks for metrics / numbers / "how are sales going" | `tamaclaw_chart` | bar chart instead of a text table |
 | Content the user should READ: email summary, important Slack message, news, a report | `tamaclaw_show` | icon 📧/💬/📰 + title + body text; the mascot steps aside and the card takes the stage |
 | Rich/custom visuals: pie or bar charts as inline SVG/CSS, tables, comparisons | `tamaclaw_show` with `html` | any HTML renders in the card (scripts don't execute) |
 | You start a long-running job | `tamaclaw_mood` `thinking` | ambient "I'm working on it" |
 | A task succeeded | `tamaclaw_mood` `happy` | after tests pass |
 | An error appeared | `tamaclaw_mood` `alert` | build failure |
-| The user asks to change the pet's look | `tamaclaw_skin` | "ponme el pixelado" → skin `pixa` |
+| The user asks to change the pet's look | `tamaclaw_skin` | "switch to the pixel one" → skin `pixa` |
 
 ## Guidelines
 
@@ -35,11 +35,10 @@ is off — mention it once and carry on; never retry in a loop.
   the current one, and `clear: true` dismisses it.
 
 - **Prefer charts over text** when the user asks for metrics: send `tamaclaw_chart`
-  and give a one-line verbal summary with `tamaclaw_say`. Reuse a stable `widget`
-  id (e.g. `ventas_hoy`) so updates replace the old chart instead of stacking.
+  and give a one-line verbal summary with `tamaclaw_say`.   Reuse a stable `widget`
+  id (e.g. `sales_today`) so updates replace the old chart instead of stacking.
   Use `pin: true` only for things the user wants to keep watching.
-- **Keep speech short.** One or two sentences, conversational Spanish (or the
-  user's language). The queue never drops utterances, so don't spam `say`.
+- **Keep speech short.** One or two sentences, conversational. The queue never drops utterances, so don't spam `say`.
 - **Moods are ambient, not chatty.** Set `thinking` when starting long work,
   `happy`/`alert` at the end. The character returns to idle on its own — no
   need to reset it.

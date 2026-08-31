@@ -92,6 +92,6 @@ export class PixaSkin extends BaseSkin {
   }
 
   onAmp(amp) {
-    this.#mouth(amp > 0.45); // chunky two-frame lip-sync, muy retro
+    this.#mouth(amp > 0.45); // chunky two-frame lip-sync, very retro
   }
 }

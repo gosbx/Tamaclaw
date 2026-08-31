@@ -22,38 +22,38 @@ curl -sSf "$BASE/health" >/dev/null || {
 post /mood      '{"value":"thinking"}'
 sleep 2
 
-post /say       '{"text":"Hola, soy Tamaclaw. Estoy revisando tus métricas.","mood":"happy"}'
+post /say       '{"text":"Hello, I am Tamaclaw. I am checking your metrics.","mood":"happy"}'
 
-post /dashboard '{"widget":"ventas_hoy","chart":"bar","title":"Ventas de hoy","pin":true,
+post /dashboard '{"widget":"sales_today","chart":"bar","title":"Today'"'"'s Sales","pin":true,
                   "data":[{"label":"09h","value":12},{"label":"11h","value":31},{"label":"13h","value":26},
                           {"label":"15h","value":44},{"label":"17h","value":38}]}'
 sleep 3
 
-post /dashboard '{"widget":"latencia","chart":"line","title":"Latencia API (ms)","ttl":60000,
-                  "data":{"labels":["lun","mar","mié","jue","vie"],
+post /dashboard '{"widget":"latency","chart":"line","title":"API Latency (ms)","ttl":60000,
+                  "data":{"labels":["Mon","Tue","Wed","Thu","Fri"],
                           "series":[{"label":"p50","values":[120,115,130,110,105]},
                                     {"label":"p99","values":[340,360,390,320,300]}]}}'
 
-post /notify    '{"title":"PR aprobado","body":"kushki-core #142 listo para merge","level":"info"}'
+post /notify    '{"title":"PR approved","body":"kushki-core #142 ready to merge","level":"info"}'
 sleep 4
 
-post /notify    '{"title":"Disco al 85%","body":"El volumen de datos crece rápido","level":"warning"}'
+post /notify    '{"title":"Disk at 85%","body":"The data volume is growing fast","level":"warning"}'
 sleep 3
 
-post /say       '{"text":"Todo en orden. Sigo atento por aquí."}'
-post /notify    '{"title":"Demo: alerta crítica","body":"Esto interrumpe el audio en curso","level":"critical"}'
+post /say       '{"text":"Everything is in order. I will keep watching."}'
+post /notify    '{"title":"Demo: critical alert","body":"This interrupts current audio","level":"critical"}'
 sleep 3
 
 post /mood      '{"value":"happy"}'
 sleep 2
 
-# tarjeta de contenido: la mascota se hace a un lado
-post /show '{"icon":"📧","title":"Resumen de inbox","source":"Gmail",
-             "body":"1. Contrato listo para firma\n2. Cierre de mes pendiente\n3. RFC esperando tu review",
-             "say":"Tienes tres correos importantes, te los dejo en pantalla","ttl":12000}'
+# content card: the pet steps aside
+post /show '{"icon":"📧","title":"Inbox summary","source":"Gmail",
+             "body":"1. Contract ready to sign\n2. Month-end close pending\n3. RFC awaiting your review",
+             "say":"You have three important emails, showing them on screen","ttl":12000}'
 sleep 12
 
-# tour de mascotas
+# pet tour
 for skin in pixa mochi holo nebula; do
   post /skin "{\"value\":\"$skin\"}"
   sleep 2

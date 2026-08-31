@@ -53,7 +53,7 @@ const SVG = `
 </svg>`;
 
 const MOUTHS = {
-  idle: "M53,72 q3.5,4 7,0 q3.5,4 7,0", // gatito w
+  idle: "M53,72 q3.5,4 7,0 q3.5,4 7,0", // kitty w
   thinking: "M56,73 q4,-3 8,0",
   happy: "M50,70 q10,10 20,0",
   alert: "M54,75 q6,-5 12,0",

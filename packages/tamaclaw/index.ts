@@ -182,7 +182,7 @@ export default function register(api: OpenClawPluginApiLike) {
       additionalProperties: false,
       required: ["widget", "title", "type", "data"],
       properties: {
-        widget: { type: "string", description: "Stable widget id, e.g. 'ventas_hoy'." },
+        widget: { type: "string", description: "Stable widget id, e.g. 'sales_today'." },
         title: { type: "string", description: "Human title shown above the chart." },
         type: { type: "string", enum: [...CHART_TYPES], description: "Chart type." },
         data: {

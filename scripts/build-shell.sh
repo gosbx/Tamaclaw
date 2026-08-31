@@ -14,5 +14,5 @@ codesign --force --sign - "$APP" 2>/dev/null || true
 
 echo "→ $APP"
 echo "run:  $APP/Contents/MacOS/Tamaclaw"
-echo "      TAMACLAW_SCREEN=1 $APP/Contents/MacOS/Tamaclaw   # monitor anexo por índice"
-echo "      TAMACLAW_WINDOW=1 $APP/Contents/MacOS/Tamaclaw   # ventana normal (dev)"
+echo "      TAMACLAW_SCREEN=1 $APP/Contents/MacOS/Tamaclaw   # secondary monitor by index"
+echo "      TAMACLAW_WINDOW=1 $APP/Contents/MacOS/Tamaclaw   # normal window (dev)"

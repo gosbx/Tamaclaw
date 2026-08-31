@@ -6,11 +6,11 @@ import { HoloSkin } from "./holo.js";
 import { ClawSkin } from "./claw.js";
 
 export const SKIN_REGISTRY = {
-  nebula: { label: "Nebula", emoji: "🪐", Skin: NebulaSkin, tag: "orbe IA luminoso" },
-  pixa: { label: "Pixa", emoji: "👾", Skin: PixaSkin, tag: "pixel retro CRT" },
+  nebula: { label: "Nebula", emoji: "🪐", Skin: NebulaSkin, tag: "luminous AI orb" },
+  pixa: { label: "Pixa", emoji: "👾", Skin: PixaSkin, tag: "retro pixel CRT" },
   mochi: { label: "Mochi", emoji: "🍡", Skin: MochiSkin, tag: "kawaii squishy" },
-  holo: { label: "Holo", emoji: "👻", Skin: HoloSkin, tag: "Y2K iridiscente" },
-  claw: { label: "Claw", emoji: "🦞", Skin: ClawSkin, tag: "el clásico v1" },
+  holo: { label: "Holo", emoji: "👻", Skin: HoloSkin, tag: "Y2K iridescent" },
+  claw: { label: "Claw", emoji: "🦞", Skin: ClawSkin, tag: "the classic v1" },
 };
 
 export const DEFAULT_SKIN = "nebula";

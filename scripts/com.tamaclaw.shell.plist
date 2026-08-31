@@ -13,7 +13,7 @@
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <!-- monitor anexo: índice de pantalla, o quita la clave para auto (secundaria si existe) -->
+    <!-- secondary monitor: screen index, or remove this key for auto (secondary if available) -->
     <key>TAMACLAW_SCREEN</key> <string>1</string>
   </dict>
   <key>RunAtLoad</key> <true/>

@@ -5,5 +5,5 @@ import { startBridge } from "./server.ts";
 
 const { port } = await startBridge();
 console.log(
-  `   try     : curl -X POST localhost:${port}/say -H 'content-type: application/json' -d '{"text":"hola, soy Tamaclaw","mood":"happy"}'`,
+  `   try     : curl -X POST localhost:${port}/say -H 'content-type: application/json' -d '{"text":"hello, I am Tamaclaw","mood":"happy"}'`,
 );
