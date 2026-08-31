@@ -121,8 +121,8 @@ then confirm. Done. The agent now has a face.
 
 ```bash
 # from this repo:
-npm run pack                   # → dist/tamaclaw-0.1.3.tgz
-openclaw plugins install ./dist/tamaclaw-0.1.3.tgz
+npm run pack                   # → dist/tamaclaw-0.3.1.tgz
+openclaw plugins install ./dist/tamaclaw-0.3.1.tgz
 openclaw plugins enable tamaclaw
 openclaw restart
 ```

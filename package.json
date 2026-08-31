@@ -1,6 +1,6 @@
 {
   "name": "tamaclaw-monorepo",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Dev workspace for the tamaclaw package (OpenClaw companion display).",
   "type": "module",

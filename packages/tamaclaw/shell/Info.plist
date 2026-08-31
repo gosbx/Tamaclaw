@@ -5,8 +5,8 @@
   <key>CFBundleName</key>            <string>Tamaclaw</string>
   <key>CFBundleDisplayName</key>     <string>Tamaclaw</string>
   <key>CFBundleIdentifier</key>      <string>dev.tamaclaw.shell</string>
-  <key>CFBundleVersion</key>         <string>0.1.0</string>
-  <key>CFBundleShortVersionString</key> <string>0.1.0</string>
+  <key>CFBundleVersion</key>         <string>0.3.1</string>
+  <key>CFBundleShortVersionString</key> <string>0.3.1</string>
   <key>CFBundleExecutable</key>      <string>Tamaclaw</string>
   <key>CFBundlePackageType</key>     <string>APPL</string>
   <key>LSMinimumSystemVersion</key>  <string>12.0</string>
