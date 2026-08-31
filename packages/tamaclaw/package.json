@@ -1,14 +1,17 @@
 {
   "name": "tamaclaw",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Companion display for OpenClaw: an animated mascot that speaks, emotes, and shows notifications and dashboards on a small screen. OpenClaw plugin + bridge + display in one package.",
   "type": "module",
   "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "tamaclaw": "./bridge/main.ts"
+    "tamaclaw": "./dist/bridge/main.js"
   },
   "keywords": ["openclaw", "openclaw-plugin", "companion", "display", "kiosk", "tts", "mascot"],
   "files": [
+    "dist",
     "index.ts",
     "openclaw.plugin.json",
     "bridge",
@@ -16,20 +19,29 @@
     "shared",
     "shell",
     "skills",
-    "README.md"
+    "README.md",
+    "tsconfig.json"
   ],
   "scripts": {
-    "start": "node bridge/main.ts",
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "start": "node dist/bridge/main.js",
+    "dev": "node --watch bridge/main.ts",
     "shell:build": "mkdir -p dist/Tamaclaw.app/Contents/MacOS && swiftc -O shell/TamaclawShell.swift -o dist/Tamaclaw.app/Contents/MacOS/Tamaclaw && cp shell/Info.plist dist/Tamaclaw.app/Contents/Info.plist && (codesign --force --sign - dist/Tamaclaw.app 2>/dev/null || true) && echo '→ dist/Tamaclaw.app'"
   },
   "dependencies": {
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "@types/node": "*",
+    "@types/ws": "*"
   },
   "bundleDependencies": ["ws"],
   "engines": {
     "node": ">=23.6"
   },
   "openclaw": {
-    "extensions": ["./index.ts"]
+    "extensions": ["./dist/index.js"]
   }
 }

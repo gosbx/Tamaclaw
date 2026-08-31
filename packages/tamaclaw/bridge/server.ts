@@ -30,7 +30,12 @@ import { wakeDisplay } from "./wake.ts";
 const VERSION = "0.1.0";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const displayRoot = path.resolve(here, "../display");
+// When running from compiled dist/bridge/, display is at ../../display;
+// when running from source bridge/, it's at ../display.
+const displayCandidate = path.resolve(here, "../display");
+const displayRoot = existsSync(displayCandidate)
+  ? displayCandidate
+  : path.resolve(here, "../../display");
 
 export interface BridgeOptions {
   port?: number;
