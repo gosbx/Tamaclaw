@@ -7,6 +7,8 @@ renders dashboard charts, and displays rich content cards.
 
 One npm package = everything: OpenClaw plugin + HTTP bridge + kiosk display.
 
+![Tamaclaw screenshot](assets/screenshot.png)
+
 [![npm](https://img.shields.io/npm/v/tamaclaw)](https://www.npmjs.com/package/tamaclaw)
 
 ---

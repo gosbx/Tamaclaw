@@ -14,8 +14,8 @@ const SCALE_KEY = "tamaclaw-scale";
 
 function setScale(pct) {
   const clamped = Math.round(Math.max(50, Math.min(200, pct)));
-  document.documentElement.style.setProperty("--tamaclaw-scale", clamped / 100);
-  document.documentElement.style.fontSize = `calc(clamp(14px, 2.5vh, 22px) * ${clamped / 100})`;
+  // CSS zoom scales EVERYTHING: text, SVGs, layouts, charts — like pinch-zoom
+  document.body.style.zoom = clamped / 100;
   try { localStorage.setItem(SCALE_KEY, String(clamped)); } catch { /* ok */ }
 }
 
