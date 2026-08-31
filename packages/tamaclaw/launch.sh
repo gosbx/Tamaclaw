@@ -11,12 +11,14 @@
 #   4. Restarts the OpenClaw Gateway (so the bridge service registers)
 #   5. Waits for the bridge to be healthy
 #   6. Opens the display (browser or kiosk mode)
+#   7. Returns control to your terminal
 #
 # Usage:
-#   tamaclaw-launch                  # install + open in default browser
-#   tamaclaw-launch --kiosk          # install + open in Chrome kiosk (fullscreen, no UI)
-#   tamaclaw-launch --standalone     # skip OpenClaw, just run the bridge + open display
-#   tamaclaw-launch --port 5000      # use a custom port
+#   ./launch.sh                  # install + open in default browser
+#   ./launch.sh --kiosk          # install + open in Chrome kiosk (fullscreen, no UI)
+#   ./launch.sh --standalone     # skip OpenClaw, just run the bridge + open display
+#   ./launch.sh --port 5000      # use a custom port
+#   ./launch.sh --stop           # stop a standalone bridge started by this script
 #
 # Environment variables:
 #   TAMACLAW_PORT    Bridge port (default 4321)
@@ -30,22 +32,27 @@ PORT="${TAMACLAW_PORT:-4321}"
 KIOSK=false
 STANDALONE=false
 SKIP_INSTALL=false
+STOP=false
+PIDFILE="/tmp/tamaclaw-bridge.pid"
+LOGFILE="/tmp/tamaclaw-bridge.log"
 
 # ── Parse args ──────────────────────────────────────────────────────────────
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --kiosk)       KIOSK=true; shift ;;
-    --standalone)  STANDALONE=true; shift ;;
+    --kiosk)        KIOSK=true; shift ;;
+    --standalone)   STANDALONE=true; shift ;;
     --skip-install) SKIP_INSTALL=true; shift ;;
-    --port)        PORT="$2"; shift 2 ;;
+    --port)         PORT="$2"; shift 2 ;;
+    --stop)         STOP=true; shift ;;
     -h|--help)
-      echo "Usage: $0 [--kiosk] [--standalone] [--skip-install] [--port N]"
+      echo "Usage: $0 [--kiosk] [--standalone] [--skip-install] [--port N] [--stop]"
       echo ""
       echo "  --kiosk         Open display in Chrome kiosk mode (fullscreen, no UI)"
       echo "  --standalone    Run the bridge directly, skip OpenClaw plugin install"
       echo "  --skip-install  Skip plugin install/enable, just restart and open"
       echo "  --port N        Bridge port (default: 4321)"
+      echo "  --stop          Stop a standalone bridge started by this script"
       exit 0
       ;;
     *) echo "Unknown option: $1. Use --help for usage."; exit 1 ;;
@@ -59,7 +66,6 @@ URL="http://localhost:$PORT"
 
 step() { echo ""; echo "── $1"; }
 ok()   { echo "   ✓ $1"; }
-skip() { echo "   · $1 (skipped)"; }
 fail() { echo "   ✗ $1"; exit 1; }
 warn() { echo "   ! $1"; }
 
@@ -75,11 +81,29 @@ wait_for_health() {
   return 1
 }
 
+# ── Stop mode ───────────────────────────────────────────────────────────────
+
+if $STOP; then
+  if [[ -f "$PIDFILE" ]]; then
+    PID=$(cat "$PIDFILE")
+    if kill -0 "$PID" 2>/dev/null; then
+      kill "$PID"
+      rm -f "$PIDFILE"
+      echo "Stopped Tamaclaw bridge (PID $PID)."
+    else
+      rm -f "$PIDFILE"
+      echo "Bridge was not running (stale PID file removed)."
+    fi
+  else
+    echo "No standalone bridge to stop (no PID file at $PIDFILE)."
+  fi
+  exit 0
+fi
+
 # ── Step 1: Prerequisites ──────────────────────────────────────────────────
 
 step "Checking prerequisites"
 
-# Node.js
 if ! command -v node &>/dev/null; then
   fail "Node.js is not installed. Install Node >= 23.6: https://nodejs.org"
 fi
@@ -90,7 +114,6 @@ if [[ "$NODE_MAJOR" -lt 23 ]]; then
 fi
 ok "Node.js $(node -v)"
 
-# OpenClaw (unless standalone)
 if ! $STANDALONE; then
   if ! command -v openclaw &>/dev/null; then
     warn "openclaw CLI not found — switching to standalone mode"
@@ -105,7 +128,6 @@ fi
 if ! $STANDALONE && ! $SKIP_INSTALL; then
   step "Installing tamaclaw plugin"
 
-  # Check if already installed
   if openclaw plugins list 2>/dev/null | grep -q "tamaclaw"; then
     ok "tamaclaw is already installed"
   else
@@ -135,7 +157,6 @@ if ! $STANDALONE && ! $SKIP_INSTALL; then
 
   step "Restarting OpenClaw Gateway"
 
-  # Check if gateway is running
   if openclaw gateway status 2>/dev/null | grep -q "running"; then
     echo "   Stopping gateway..."
     openclaw gateway stop 2>/dev/null || true
@@ -160,49 +181,65 @@ if ! $STANDALONE && ! $SKIP_INSTALL; then
   fi
 fi
 
-# ── Standalone: start bridge directly ───────────────────────────────────────
+# ── Standalone: start bridge in background ──────────────────────────────────
+
+BRIDGE_STARTED=false
 
 if $STANDALONE; then
   step "Starting Tamaclaw bridge (standalone)"
 
-  # Find the bridge entry point
-  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-  BRIDGE=""
-
-  # Check various locations
-  for candidate in \
-    "$SCRIPT_DIR/packages/tamaclaw/bridge/main.ts" \
-    "$SCRIPT_DIR/bridge/main.ts" \
-    "$SCRIPT_DIR/dist/bridge/main.js" \
-    "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/dist/bridge/main.js" \
-    "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/bridge/main.ts"; do
-    if [[ -f "$candidate" ]]; then
-      BRIDGE="$candidate"
-      break
+  # Kill previous standalone bridge if running
+  if [[ -f "$PIDFILE" ]]; then
+    OLD_PID=$(cat "$PIDFILE")
+    if kill -0 "$OLD_PID" 2>/dev/null; then
+      echo "   Stopping previous bridge (PID $OLD_PID)..."
+      kill "$OLD_PID" 2>/dev/null || true
+      sleep 1
     fi
-  done
-
-  if [[ -z "$BRIDGE" ]]; then
-    fail "Cannot find the bridge. Install tamaclaw first: openclaw plugins install tamaclaw"
+    rm -f "$PIDFILE"
   fi
 
-  # Check if port is already in use
+  # Check if something else is already on the port
   if curl -sf "$URL/health" >/dev/null 2>&1; then
     ok "Bridge is already running at $URL"
   else
-    echo "   Starting: node $BRIDGE"
-    node "$BRIDGE" &
-    BRIDGE_PID=$!
+    # Find the bridge entry point
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    BRIDGE=""
 
-    # Wait for it to come up
-    if wait_for_health "$URL" 10; then
-      ok "Bridge started (PID $BRIDGE_PID)"
-    else
-      fail "Bridge failed to start. Check the output above."
+    for candidate in \
+      "$SCRIPT_DIR/packages/tamaclaw/bridge/main.ts" \
+      "$SCRIPT_DIR/bridge/main.ts" \
+      "$SCRIPT_DIR/dist/bridge/main.js" \
+      "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/dist/bridge/main.js" \
+      "$HOME/.openclaw/npm/projects/tamaclaw/node_modules/tamaclaw/bridge/main.ts"; do
+      if [[ -f "$candidate" ]]; then
+        BRIDGE="$candidate"
+        break
+      fi
+    done
+
+    if [[ -z "$BRIDGE" ]]; then
+      fail "Cannot find the bridge. Install tamaclaw first: openclaw plugins install tamaclaw"
     fi
 
-    # Clean up on exit
-    trap "echo ''; echo 'Stopping bridge (PID $BRIDGE_PID)...'; kill $BRIDGE_PID 2>/dev/null; wait $BRIDGE_PID 2>/dev/null" EXIT INT TERM
+    # Start in background, detached from this shell
+    echo "   Starting: node $BRIDGE"
+    nohup node "$BRIDGE" > "$LOGFILE" 2>&1 &
+    BRIDGE_PID=$!
+    disown "$BRIDGE_PID" 2>/dev/null || true
+    echo "$BRIDGE_PID" > "$PIDFILE"
+
+    if wait_for_health "$URL" 10; then
+      ok "Bridge started in background (PID $BRIDGE_PID)"
+      BRIDGE_STARTED=true
+    else
+      kill "$BRIDGE_PID" 2>/dev/null || true
+      rm -f "$PIDFILE"
+      echo "   Bridge log:"
+      cat "$LOGFILE" 2>/dev/null | tail -20
+      fail "Bridge failed to start. Check $LOGFILE for details."
+    fi
   fi
 fi
 
@@ -241,15 +278,17 @@ echo "============================================"
 echo "  Tamaclaw is running!"
 echo "  Display : $URL"
 echo "  Health  : $URL/health"
+if $BRIDGE_STARTED; then
+echo "  Bridge  : PID $(cat "$PIDFILE"), log at $LOGFILE"
+fi
 echo "============================================"
 echo ""
 echo "Try it:"
 echo "  curl -X POST localhost:$PORT/say -H 'content-type: application/json' \\"
 echo "    -d '{\"text\": \"Hello! Tamaclaw is alive.\", \"mood\": \"happy\"}'"
 echo ""
-
-# If we started the bridge in standalone mode, keep the script alive
-if $STANDALONE && [[ -n "${BRIDGE_PID:-}" ]]; then
-  echo "Bridge running in background (PID $BRIDGE_PID). Press Ctrl-C to stop."
-  wait $BRIDGE_PID
+if $BRIDGE_STARTED; then
+echo "To stop the standalone bridge:"
+echo "  ./launch.sh --stop"
+echo ""
 fi
