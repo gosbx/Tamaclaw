@@ -1,6 +1,6 @@
 {
   "name": "tamaclaw",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Companion display for OpenClaw: an animated mascot that speaks, emotes, and shows notifications and dashboards on a small screen. OpenClaw plugin + bridge + display in one package.",
   "type": "module",
   "license": "MIT",

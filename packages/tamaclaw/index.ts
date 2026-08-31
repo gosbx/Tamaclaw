@@ -300,7 +300,35 @@ export default function register(api: OpenClawPluginApiLike) {
     },
   };
 
-  for (const tool of [sayTool, notifyTool, chartTool, showTool, moodTool, skinTool]) {
+  const scaleTool: AgentToolLike = {
+    name: "tamaclaw_scale",
+    label: "Tamaclaw Scale",
+    description:
+      "Adjust the display zoom on the Tamaclaw companion screen. " +
+      "Use when the user says things are too small or too big. " +
+      "Value is a percentage: 100 = default, 120 = 20% bigger, 80 = 20% smaller. Range: 50–200. " +
+      "The setting persists across reloads.",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      required: ["scale"],
+      properties: {
+        scale: {
+          type: "number",
+          description: "Zoom percentage (50–200). 100 = default, 130 = 30% bigger, etc.",
+        },
+      },
+    },
+    async execute(_id, params) {
+      const value = params.scale;
+      if (typeof value !== "number" || value < 50 || value > 200) {
+        return textResult("error: scale must be a number between 50 and 200");
+      }
+      return post("/scale", { value: Math.round(value) });
+    },
+  };
+
+  for (const tool of [sayTool, notifyTool, chartTool, showTool, moodTool, skinTool, scaleTool]) {
     api.registerTool(tool, { optional: true });
   }
 }

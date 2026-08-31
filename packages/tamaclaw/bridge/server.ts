@@ -27,7 +27,7 @@ import { createEngine } from "./tts.ts";
 import { SayQueue } from "./say-queue.ts";
 import { wakeDisplay } from "./wake.ts";
 
-const VERSION = "0.2.7";
+const VERSION = "0.3.0";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 // When running from compiled dist/bridge/, display is at ../../display;
@@ -143,6 +143,8 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
   let lastMood: Mood = "idle";
   /** Only replayed once explicitly set (the display persists its own choice). */
   let lastSkin: Skin | null = (process.env.TAMACLAW_SKIN as Skin) || null;
+  /** Display zoom scale (50–200, default 100). Replayed to reconnecting displays. */
+  let lastScale: number | null = null;
   /** Live widgets so a display that reconnects gets its dashboard back. */
   const widgets = new Map<string, { event: DashboardEvent; expiresAt: number | null }>();
   /** Current show card, replayed to reconnecting displays until it expires. */
@@ -151,6 +153,7 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
   function broadcast(event: ServerEvent): void {
     if (event.type === "mood") lastMood = event.value;
     if (event.type === "skin") lastSkin = event.value;
+    if (event.type === "scale") lastScale = event.value;
     if (event.type === "show") lastShow = { event, expiresAt: Date.now() + event.ttl };
     if (event.type === "show:clear") lastShow = null;
     if (event.type === "say:start") lastMood = event.mood;
@@ -181,6 +184,9 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
     socket.send(JSON.stringify({ type: "mood", value: lastMood } satisfies ServerEvent));
     if (lastSkin && SKINS.includes(lastSkin)) {
       socket.send(JSON.stringify({ type: "skin", value: lastSkin } satisfies ServerEvent));
+    }
+    if (lastScale !== null) {
+      socket.send(JSON.stringify({ type: "scale", value: lastScale } satisfies ServerEvent));
     }
     const now = Date.now();
     for (const [id, w] of widgets) {
@@ -321,6 +327,16 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
     return { ok: true, value };
   }
 
+  function handleScale(body: Record<string, unknown>) {
+    const raw = body.value ?? body.scale;
+    if (typeof raw !== "number" || !Number.isFinite(raw)) {
+      throw new HttpError(400, '"value" must be a number (50–200)');
+    }
+    const value = Math.round(Math.max(50, Math.min(200, raw)));
+    broadcast({ type: "scale", value } satisfies ServerEvent);
+    return { ok: true, value };
+  }
+
   function serveStatic(res: ServerResponse, urlPath: string): void {
     const rel = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
     const file = path.join(displayRoot, rel);
@@ -355,6 +371,7 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
           sayQueue: sayQueue.length,
           widgets: widgets.size,
           skin: lastSkin,
+          scale: lastScale ?? 100,
         });
         return;
       }
@@ -375,6 +392,9 @@ export function startBridge(options: BridgeOptions = {}): Promise<BridgeHandle> 
             return;
           case "/skin":
             sendJson(res, 200, handleSkin(body));
+            return;
+          case "/scale":
+            sendJson(res, 200, handleScale(body));
             return;
           case "/show":
             sendJson(res, 200, handleShow(body));

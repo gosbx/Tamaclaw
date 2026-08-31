@@ -24,6 +24,7 @@ is off — mention it once and carry on; never retry in a loop.
 | A task succeeded | `tamaclaw_mood` `happy` | after tests pass |
 | An error appeared | `tamaclaw_mood` `alert` | build failure |
 | The user asks to change the pet's look | `tamaclaw_skin` | "switch to the pixel one" → skin `pixa` |
+| The user says the display is too small or too big | `tamaclaw_scale` | "make it bigger" → scale 130; "too big" → scale 100; "way bigger" → scale 160 |
 
 ## Guidelines
 
@@ -46,3 +47,7 @@ is off — mention it once and carry on; never retry in a loop.
   genuinely need immediate attention.
 - Don't echo everything you say in chat to the display; use it for moments
   that matter (task completions, alerts, requested dashboards).
+- **`tamaclaw_scale` adjusts display zoom (50–200).** 100 is default. If the
+  user says "too small" try 130–150; "too big" try 80–90. The setting
+  persists across reloads — set it once and it sticks. Bump in increments
+  of 10–20 and ask if that's better.

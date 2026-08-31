@@ -185,6 +185,17 @@ export interface ShowClearEvent {
   type: "show:clear";
 }
 
+/** POST /scale — adjust display zoom. value is a percentage (50–200, default 100). */
+export interface ScaleRequest {
+  /** Zoom percentage: 50–200. 100 = default size. */
+  value: number;
+}
+
+export interface ScaleEvent {
+  type: "scale";
+  value: number;
+}
+
 export type ServerEvent =
   | HelloEvent
   | SayStartEvent
@@ -194,7 +205,8 @@ export type ServerEvent =
   | MoodEvent
   | SkinEvent
   | ShowEvent
-  | ShowClearEvent;
+  | ShowClearEvent
+  | ScaleEvent;
 
 // ---------------------------------------------------------------------------
 // Defaults shared by bridge and display

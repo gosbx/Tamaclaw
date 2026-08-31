@@ -11,7 +11,8 @@
       "tamaclaw_chart",
       "tamaclaw_show",
       "tamaclaw_mood",
-      "tamaclaw_skin"
+      "tamaclaw_skin",
+      "tamaclaw_scale"
     ],
     "services": [
       "tamaclaw-bridge"

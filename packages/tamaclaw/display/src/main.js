@@ -8,6 +8,22 @@ import { ShowStage } from "./show.js";
 const SLEEP_AFTER_MS = 3 * 60 * 1000; // pet dozes off when nothing happens
 const REVERT_MS = 8000; // happy/alert fade back to idle
 const SKIN_KEY = "tamaclaw-skin";
+const SCALE_KEY = "tamaclaw-scale";
+
+// ------------------------------------------------------------------- scale
+
+function setScale(pct) {
+  const clamped = Math.round(Math.max(50, Math.min(200, pct)));
+  document.documentElement.style.setProperty("--tamaclaw-scale", clamped / 100);
+  document.documentElement.style.fontSize = `calc(clamp(14px, 2.5vh, 22px) * ${clamped / 100})`;
+  try { localStorage.setItem(SCALE_KEY, String(clamped)); } catch { /* ok */ }
+}
+
+// Restore saved scale on load
+try {
+  const saved = localStorage.getItem(SCALE_KEY);
+  if (saved) setScale(Number(saved));
+} catch { /* ok */ }
 
 // ------------------------------------------------------------------- skins
 
@@ -124,6 +140,9 @@ function handleEvent(evt) {
       break;
     case "skin":
       setSkin(evt.value, { persist: true });
+      break;
+    case "scale":
+      setScale(evt.value);
       break;
     case "show":
       showStage.show(evt);
